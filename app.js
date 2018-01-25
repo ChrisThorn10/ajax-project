@@ -3,35 +3,45 @@
 searchButton.addEventListener("click", searchWeather);
 
 function searchWeather() {
+    loadingText.style.display = 'block';
+    weatherBox.style.display = 'none';
     var cityName = searchCity.value;
-    var getWeatherData = new XMLHttpRequest();
-    
+    var http = new XMLHttpRequest();
+  
     if(cityName.trim().length == 0){
         return alert("Please enter a city name.")
     }
     
     function reqListener () {
-        console.log(this.responseText);
+        console.log("response text: " + this.responseText);
     }
     
-    getWeatherData.addEventListener("load", reqListener);
+    http.addEventListener("load", reqListener);
     
-    getWeatherData.open("GET", "http://api.openweathermap.org/data/2.5/weather?q="+cityName+"&APPID=dfb42252b0b477f1f10fec5a3aab127c");
+    http.open("GET", "http://api.openweathermap.org/data/2.5/weather?q="+cityName+"&units=metric&APPID=dfb42252b0b477f1f10fec5a3aab127c");
     
-    getWeatherData.onreadystatechange = function() {
-        if(getWeatherData.readyState === XMLHttpRequest.DONE && getWeatherData.status === 200) {
-            var data = JSON.parse(getWeatherData.responseText);
-            console.log("data: " + JSON.stringify(data));
-        }   else if(getWeatherData.readyState === XMLHttpRequest.DONE){
+    http.onreadystatechange = function() {
+        if(http.readyState === XMLHttpRequest.DONE && http.status === 200) {
+            var data = JSON.parse(http.responseText);
+            var weatherData = new Weather(cityName, data.weather[0].description.toUpperCase());
+            weatherData.temperature = data.main.temp;
+            updateWeather(weatherData);
+            
+        } else if(http.readyState === XMLHttpRequest.DONE){
             alert("Oops... something went wrong.")
         }
     };
-    getWeatherData.send();
     
-    displayWeather();
+        http.send();
+
     
 }
 
-function displayWeather() {
-    alert("in displayWeather");
+function updateWeather(weatherData) {
+    weatherCity.textContent = weatherData.cityName;
+    weatherDescription.textContent = weatherData.description;
+    weatherTemperature.textContent = weatherData.temperature;
+    
+    loadingText.style.display = 'none';
+    weatherBox.style.display = 'block';
 }
